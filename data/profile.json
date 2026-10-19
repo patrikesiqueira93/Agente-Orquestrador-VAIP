@@ -1,0 +1,109 @@
+{
+  "nome_completo": "Patrik Ernandes Siqueira",
+  "cargo_foco": "Analista de Dados & Business Intelligence (BI)",
+  "localizacao": {
+    "cidade": "Mogi das Cruzes",
+    "estado": "SP",
+    "regiao_atuacao": ["Mogi das Cruzes", "Suzano", "Poá", "Guararema", "Salesópolis", "Itaquaquecetuba", "Guarulhos", "São Paulo - Leste", "Remoto (Home Office)"]
+  },
+  "contato": {
+    "email": "patrikesiqueira@gmail.com",
+    "telefone": "(11) 95778-8670",
+    "linkedin": "https://www.linkedin.com/in/patrik-e-siqueira/"
+  },
+  "resumo_profissional": "Profissional especialista em Análise de Dados e Business Intelligence (BI), com sólida atuação na criação, alimentação, manutenção e governança de indicadores, além de arquitetura de relatórios, dashboards interativos e automação de processos de ETL. Domínio em Power BI, DAX, Power Query (M), SQL Server, Python e ecossistema de dados. Experiência comprovada no suporte à tomada de decisão estratégica, construção e gestão de métricas chave de desempenho (KPIs), otimização de processos operacionais/comerciais e modelagem de dados, sendo reconhecido com prêmio de excelência técnica em projeto de suporte operacional.",
+  "formacao_academica": [
+    {
+      "curso": "Engenharia da Computação",
+      "instituicao": "UNIVESP (Universidade Virtual do Estado de SP)",
+      "periodo": "3º Semestre (Início: 2025)",
+      "status": "Em andamento"
+    },
+    {
+      "curso": "Tecnólogo em Design Gráfico",
+      "instituicao": "Universidade Cidade de São Paulo (Unicid)",
+      "periodo": "Concluído em 2023",
+      "status": "Concluído"
+    }
+  ],
+  "experiencia_profissional": [
+    {
+      "empresa": "Infotec Brasil",
+      "cargo": "Analista de Dados (Projeto Petrobras S.A.)",
+      "periodo": "Jan/2024 – Atual",
+      "modelo": "Home Office",
+      "destaques": [
+        "Prêmio de Reconhecimento Técnico (Abril/2026): Condecorado pela gestão operacional da Bacia de Campos pelo desenvolvimento de solução de inteligência voltada à criação, alimentação, manutenção e governança de indicadores estratégicos, acompanhamento do plano de contratação e otimização de fluxos operacionais.",
+        "Desenvolvimento e manutenção de dashboards estratégicos em Power BI utilizando linguagem DAX avançada, seguindo rigorosos padrões visuais corporativos.",
+        "Arquitetura de processos ETL com integração de múltiplas fontes de dados (SQL Server, Excel, Access), garantindo governança, integridade e performance.",
+        "Elaboração de relatórios gerenciais e monitoramento de KPIs para a Bacia de Campos, atuando na gestão e previsão de datas do plano de contratação.",
+        "Automação de rotinas de carga e padronização de procedimentos, resultando em expressiva redução de refazer e ganho de produtividade operacional.",
+        "Apresentação de relatórios analíticos em reuniões gerenciais, traduzindo dados complexos em insights acionáveis."
+      ]
+    },
+    {
+      "empresa": "ArcelorMittal Brasil",
+      "cargo": "Vendedor Hunter / Analista Comercial",
+      "periodo": "Mar/2021 – Dez/2023",
+      "destaques": [
+        "Análise preditiva e inteligência de dados comerciais para identificação de tendências de mercado, otimização de pipeline e expansão de market share.",
+        "Prospecção ativa e gestão de carteira estratégica B2B/B2C, integrando canais físicos, digitais e atendimento consultivo de alta complexidade.",
+        "Acompanhamento de metas e KPIs de vendas com apoio de ferramentas analíticas para tomadas de decisão rápidas no processo comercial."
+      ]
+    },
+    {
+      "empresa": "H.M. Parafusos e Acessórios Industriais",
+      "cargo": "Vendedor Técnico",
+      "periodo": "Jan/2017 – Fev/2021",
+      "destaques": [
+        "Prospecção de mercado industrial e gestão de relacionamento B2B com foco em rentabilidade e fidelização.",
+        "Análise de dados de vendas e estoque via plataformas digitais, aplicando estratégias para otimização do giro de produtos."
+      ]
+    },
+    {
+      "empresa": "Suzano Papel e Celulose",
+      "cargo": "Estagiário Fiscal",
+      "periodo": "Jan/2016 – Dez/2016",
+      "destaques": [
+        "Apoio ao controle e conformidade de processos fiscais e cadastrais com órgãos reguladores (Receita Federal, SEFAZ).",
+        "Tratamento e organização de bases de dados fiscais via Excel para assegurar integridade operacional."
+      ]
+    }
+  ],
+  "competencias": {
+    "hard_skills": [
+      "Power BI",
+      "Linguagem DAX",
+      "Power Query (M)",
+      "SQL Server",
+      "ETL",
+      "Modelagem de Dados",
+      "Python Intermediário",
+      "Pandas Intermediário",
+      "Criação de Agentes de IA Personalizados (Copilot Builder e Chat Petrobras)",
+      "Excel Avançado",
+      "JIRA (JQL)",
+      "Power Platform",
+      "Dashboards & Governança de Indicadores"
+    ],
+    "soft_skills": [
+      "Raciocínio Analítico",
+      "Resolução de Problemas Complexos",
+      "Visão de Negócio",
+      "Comunicação Assertiva",
+      "Trabalho em Equipe",
+      "Proatividade"
+    ]
+  },
+  "certificacoes_relevantes": [
+    "Petrobras: IA na Prática (Presencial Base Imbetiba)",
+    "Petrobras: Ciência de Dados para Não Cientistas",
+    "Petrobras: Power BI Service & Aplicação de Tecnologias Digitais (AWS Cloud, BOTS, IoT, RPA)",
+    "Petrobras: Metodologias Ágeis – Scrum e Kanban",
+    "IBM: Introdução aos Modelos de Linguagem Amplos (LLM)",
+    "Microsoft: Copilot 365, Prompts Eficazes e Cibersegurança",
+    "Udemy: SQL para Análise de Dados: Do Básico ao Avançado",
+    "Udemy: JIRA Software Customização & JQL",
+    "SEBRAE: Inovação na Prática | LGPD"
+  ]
+}

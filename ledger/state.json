@@ -1,0 +1,34 @@
+{
+  "updated_at": "2026-10-19T17:00:00-03:00",
+  "version": "1.0.0",
+  "master": {
+    "name": "VAIP",
+    "role": "Master Orchestrator",
+    "status": "ready"
+  },
+  "projects": {
+    "PRJ-01": {
+      "id": "PRJ-01",
+      "slug": "vagas-dados-mogi-e-regiao",
+      "name": "Vagas-dados-Mogi-e-regiao",
+      "status": "active",
+      "checkpoint": "testar_copiloto_amanha",
+      "discord_channel": "#vagas-dados",
+      "schedule": "daily_17:30",
+      "target_location": "Mogi das Cruzes, SP / Remoto",
+      "target_roles": ["Analista de Dados", "BI", "Engenheiro de Dados"],
+      "platforms": ["Gupy", "LinkedIn", "InfoJobs", "Catho"],
+      "last_run": "2026-10-19 17:45:00"
+    },
+    "PRJ-02": {
+      "id": "PRJ-02",
+      "slug": "canais-dark-video",
+      "name": "Canais Dark (YT / TikTok / Kwai)",
+      "status": "structuring",
+      "platforms": ["YouTube Shorts", "TikTok", "Kwai"],
+      "niche": "TBD",
+      "scripts_ready": 0,
+      "videos_rendered": 0
+    }
+  }
+}

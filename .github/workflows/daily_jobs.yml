@@ -1,0 +1,43 @@
+name: VAIP Daily Job Hunter (Nuvem 100% Grátis)
+
+on:
+  schedule:
+    # 20:30 UTC = 17:30 Horário de Brasília (BRT) todo dia
+    - cron: '30 20 * * *'
+  workflow_dispatch: # Permite disparar manualmente pelo botão no GitHub quando quiser
+
+jobs:
+  run-job-hunter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Executar Varredura de Vagas
+        run: |
+          python scripts/search_jobs.py
+
+      - name: Disparar Alerta para Discord/Telegram
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python -c "
+          from scripts.notify import send_discord_message, send_telegram_message
+          import os
+          from datetime import datetime
+
+          today = datetime.now().strftime('%Y-%m-%d')
+          msg = f'🎯 **VAIP Hunter**: O relatório diário de vagas de dados ({today}) para Mogi das Cruzes, Alto Tietê e Remoto foi atualizado!'
+          
+          if os.environ.get('DISCORD_WEBHOOK_URL'):
+              send_discord_message(msg)
+          if os.environ.get('TELEGRAM_BOT_TOKEN'):
+              send_telegram_message(msg)
+          "

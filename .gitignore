@@ -1,0 +1,29 @@
+# Segurança: Segredos e Credenciais (NUNCA comitar)
+.env
+.env.local
+*.key
+*.pem
+*.token
+credentials.json
+token.json
+session.json
+
+# Caches e Ambientes Virtuais
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+node_modules/
+
+# Mídias e Arquivos Pesados (Canais Dark)
+*.mp4
+*.mkv
+*.mov
+*.wav
+*.mp3
+data/videos_rendered/
+data/raw_media/
+
+# Logs e Dados Temporários
+*.log
+data/temp/
