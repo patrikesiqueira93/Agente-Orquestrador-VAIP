@@ -64,14 +64,15 @@ Pipeline automatizado de criação, composição e distribuição de mídia vert
 
 ---
 
-## 🛡️ Segurança e Governança (Zero-Leak)
+## 🛡️ Segurança, Governança e Skills Ativas
 
-Projetado sob rigorosos padrões de segurança da informação e integridade corporativa:
+Projetado sob rigorosos padrões de segurança da informação, integridade corporativa e proteção ativa da máquina local:
 
-1. **Zero-Leak de Credenciais:** Nenhuma chave de API, webhook, token de sessão ou senha de portal é versionada. Todas as variáveis sensíveis são injetadas exclusivamente via `.env` local ou *GitHub Actions Secrets*.
-2. **Defesa contra Injeção de Prompt (Web Shield):** Dados coletados de sites externos são sanitizados antes de serem avaliados por qualquer modelo generativo.
-3. **Prevenção de Perda de Dados:** Operações destrutivas exigem confirmação explícita de governança antes da execução.
-4. **Eficiência Extrema de Tokens:** Tarefas pesadas de computação, parsing e renderização rodam em scripts locais e workers em nuvem, garantindo respostas rápidas e custo de inferência próximo de zero.
+1. **Trava de Proprietário (Branch Protection na `main`):** A branch principal é blindada no GitHub contra force-pushes (`non_fast_forward`) e exclusões não autorizadas, com controle exclusivo do proprietário **Patrik Ernandes Siqueira**.
+2. **Defesa Ativa da Máquina Host (`vaip-host-defense`):** Bloqueio estrito de operações destrutivas no sistema operacional, isolamento de processos e blindagem contra acesso a chaves mestras e credenciais do Windows.
+3. **Escudo Cognitivo dos Agentes (`vaip-agent-shield`):** Defesa ativa contra *Prompt Injection* (Web Shield para dados raspados na Catho/LinkedIn/Gupy), princípio do menor privilégio para subagentes e mascaramento automático de credenciais em logs e saídas.
+4. **Auditoria Contínua & Inteligência Diária (`vaip-secops-updater`):** Módulo autônomo (`scripts/secops_guard.py`) executado a cada ciclo diário para escanear segredos expostos, auditar a integridade dos scripts e registrar conformidade em `ledger/security_audit.json`.
+5. **Eficiência Extrema de Tokens:** Tarefas pesadas de computação, parsing e renderização rodam em scripts locais e workers em nuvem, garantindo respostas rápidas e custo de inferência próximo de zero.
 
 ---
 
@@ -82,19 +83,25 @@ Agente-Orquestrador-VAIP/
 ├── .github/
 │   └── workflows/
 │       └── daily_jobs.yml        # CI/CD & Automação Cron diária às 17:30
+├── skills/
+│   ├── vaip-host-defense/        # Skill de proteção do PC e do Sistema Operacional
+│   ├── vaip-agent-shield/        # Skill de defesa contra Prompt Injection e Jailbreak
+│   └── vaip-secops-updater/      # Skill de auditoria diária e mitigação contínua
 ├── config/
 │   └── security_policy.md       # Diretrizes formais de segurança e economia de tokens
 ├── ledger/
 │   ├── PROJECTS_LEDGER.md       # Painel visual do status de cada projeto
-│   └── state.json               # Estado persistente legível por máquina
+│   ├── state.json               # Estado persistente legível por máquina
+│   └── security_audit.json      # Registro diário da auditoria SecOps
 ├── agents/
 │   ├── vaip_master.md           # Blueprint e diretrizes do Orquestrador Mestre
 │   ├── job_hunter_spec.md       # Especificação técnica do subagente de vagas
 │   └── dark_channel_spec.md     # Especificação técnica do subagente de canais dark
 ├── scripts/
+│   ├── secops_guard.py          # Auditoria ativa e varredura diária de segredos
 │   ├── search_jobs.py           # Motor de busca e parametrização de links por região
-│   ├── notify.py                # Integração e disparo de Embeds ricos para o Discord
-│   ├── daily_runner.py          # Runner unificado de orquestração diária
+│   ├── notify.py                # Integração e disparo de Embeds + Arquivos para Discord
+│   ├── daily_runner.py          # Runner unificado com auditoria prévia
 │   └── copilot_apply.py         # Copiloto de candidatura e respostas contextuais
 ├── data/
 │   └── profile.json             # Perfil curricular estruturado para auto-fill

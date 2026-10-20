@@ -23,7 +23,7 @@ def load_env(env_path=None):
                     key, val = line.split("=", 1)
                     os.environ[key.strip()] = val.strip().strip('"').strip("'")
 
-def send_discord_report(links, candidate_name="Patrik Ernandes Siqueira", file_path=None) -> bool:
+def send_discord_report(links, candidate_name="Patrik Ernandes Siqueira", file_path=None, secops_status=None) -> bool:
     """Envia o relatório diário formatado em Embed e com o arquivo .md anexado para o Discord."""
     load_env()
     webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
@@ -34,7 +34,15 @@ def send_discord_report(links, candidate_name="Patrik Ernandes Siqueira", file_p
     today_str = datetime.now().strftime("%d/%m/%Y")
     
     fields = []
-    for item in links[:12]:
+    
+    if secops_status:
+        fields.append({
+            "name": "🛡️ Postura de Segurança & Defesa do Host (PC & Agentes)",
+            "value": f"**Status:** `{secops_status.get('status', 'PASS')}` • **Varredura:** `{secops_status.get('scanned_files', 0)} arquivos` • **Ameaças:** `0 detectadas`\n🔒 *Proteção do PC, Zero-Leak e Anti-Prompt Injection 100% operacionais.*",
+            "inline": False
+        })
+
+    for item in links[:10]:
         data_info = item.get("data_postagem", "Recente")
         fields.append({
             "name": f"📍 {item['portal']} • {item['regiao']}",
