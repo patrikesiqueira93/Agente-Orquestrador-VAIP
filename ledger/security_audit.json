@@ -1,9 +1,11 @@
 {
-  "timestamp": "2026-10-24 22:40:10",
-  "scanned_files": 27,
+  "timestamp": "2026-10-25 15:47:04",
+  "scanned_files": 34,
   "status": "PASS",
   "threats_detected": 0,
   "findings": [],
+  "scan_errors": [],
+  "vaults_present": [],
   "host_protection": "ACTIVE",
   "agent_shield": "ACTIVE",
   "zero_leak_status": "COMPLIANT"

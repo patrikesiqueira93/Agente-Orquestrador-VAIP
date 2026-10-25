@@ -1,3 +1,5 @@
+vamos por partes, abaixo segue o código completo do security_policy.md para você fazer os ajustes necessários
+
 # VAIP Security & Efficiency Policy (Zero-Leak & Low-Token)
 
 Este documento estabelece as diretrizes invioláveis de operação do agente mestre VAIP e de todos os seus subagentes.
@@ -31,4 +33,4 @@ Para manter o custo e a latência mínimos sem perder precisão:
    * Utilizar JSON minificado ou tabelas Markdown pontuais para o estado dos projetos.
    * Evitar conversas redundantes; perguntas e respostas diretas e cirúrgicas.
 3. **Cache Local Primeiro**:
-   * Vagas já avaliadas e vídeos já agendados são gravados em disco (`data/`). Nunca refazer requisições à IA para dados já analisados.
+   * Vagas já avaliadas e vídeos já agendados são gravados em disco (`data/`). Nunca refazer requisições à IA para dados já analisados.   
