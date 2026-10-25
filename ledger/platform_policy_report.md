@@ -1,11 +1,11 @@
 # Monitor de Politicas - Ultima Verificacao
 
-Executado em 2026-10-25 16:38 UTC.
+Executado em 2026-10-25 22:44 UTC.
 
 | Politica | Status | Similaridade | Caracteres | URL |
 |---|---|---|---|---|
 | youtube_monetizacao | IGUAL | 100.0% | 27348 | https://support.google.com/youtube/answer/1311392?hl=en |
-| youtube_diretrizes | IGUAL | 100.0% | 4786 | https://www.youtube.com/t/community_guidelines |
+| youtube_diretrizes | MUDOU | 0.0% | 4606 | https://www.youtube.com/t/community_guidelines |
 | tiktok_integridade | IGUAL | 100.0% | 5887 | https://www.tiktok.com/safety/en/policies-and-engagement/integrity-authenticity |
 | tiktok_diretrizes | IGUAL | 100.0% | 6929 | https://www.tiktok.com/community-guidelines |
 
