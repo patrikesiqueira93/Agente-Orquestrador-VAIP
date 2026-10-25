@@ -3,7 +3,7 @@
 # 🧠 VAIP - Agente Orquestrador Mestre
 **Vinicius + AI + Patrik • Arquitetura de Orquestração Autônoma, Gestão Multi-Projetos e Segurança Digital**
 
-[![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![CI/CD GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF.svg?logo=github-actions&logoColor=white)](https://github.com/features/actions)
 [![Discord Integration](https://img.shields.io/badge/Alerts-Discord_Webhook-5865F2.svg?logo=discord&logoColor=white)](https://discord.com/)
 [![Gitleaks](https://img.shields.io/badge/Secret_Scan-Gitleaks-critical.svg?logo=git&logoColor=white)](https://gitleaks.io/)
@@ -81,7 +81,7 @@ Pipeline automatizado de criação, composição e distribuição de mídia vert
 
 | Camada | Tecnologia | Onde aparece |
 |---|---|---|
-| Lógica e automação | **Python 3.12+** (biblioteca padrão) | `scripts/` |
+| Lógica e automação | **Python 3.11+** (biblioteca padrão) | `scripts/` |
 | Orquestração e CI/CD | **YAML** (GitHub Actions) | `.github/workflows/` |
 | Estado e configuração | **JSON**, `.env` | `ledger/`, `data/` |
 | Documentação e specs | **Markdown** | `agents/`, `skills/`, `README.md` |
@@ -90,7 +90,7 @@ Pipeline automatizado de criação, composição e distribuição de mídia vert
 | Ambiente local | **VS Code** + PowerShell (Windows) | desenvolvimento |
 | Shell do runner | **Bash** (ubuntu-latest) | `daily_jobs.yml` |
 
-**Requisitos mínimos:** Python 3.12 ou superior, Git e conta no GitHub com acesso ao repositório. O núcleo roda sem dependências externas obrigatórias — quando alguma biblioteca extra for necessária, ela vai em `requirements.txt` e o workflow instala automaticamente.
+**Requisitos mínimos:** Python 3.11 ou superior, Git e conta no GitHub com acesso ao repositório. O núcleo roda sem dependências externas obrigatórias — quando alguma biblioteca extra for necessária, ela vai em `requirements.txt` e o workflow instala automaticamente.
 
 ---
 
@@ -266,8 +266,8 @@ Os passos de Gitleaks e do monitor usam `continue-on-error`: alerta é informaç
 
 ## 👥 Criadores & Autores
 
-* **Patrik Ernandes Siqueira** — *Analista de Dados & Business Intelligence* • [LinkedIn](https://www.linkedin.com/in/patrik-e-siqueira/) • [GitHub](https://github.com/patrikesiqueira93)
-* **Vinicius** — *Co-criador e Estrategista de Negócios*
+* **Patrik Ernandes Siqueira** — *Analista de Dados, Business Intelligence e DEV* • [LinkedIn](https://www.linkedin.com/in/patrik-e-siqueira/) • [GitHub](https://github.com/patrikesiqueira93)
+* **Vinicius Eduardo Siqueira** — *Co-criador e Estrategista de Negócios*
 
 ---
 
