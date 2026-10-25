@@ -1,15 +1,10 @@
-
----
-
-## 3. `scripts/check_platform_policy.py`
-
-```python
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """VAIP - Monitor de Politicas de Plataforma.
 
-Compara o hash SHA-256 do texto normalizado das paginas de politica de
-YouTube e TikTok. Qualquer mudanca gera alerta e codigo de saida 10,
-para o workflow abrir uma issue de revisao humana do gate.
+Compara o conteudo normalizado das paginas de politica usando similaridade
+de shingles (indice de Jaccard), em vez de hash exato. Paginas de suporte
+mudam trechos volateis (datas, IDs de sessao, artigos relacionados) a cada
+acesso, e o hash exato transformaria isso em alarme falso permanente.
 
 Uso:
     python scripts/check_platform_policy.py
@@ -17,7 +12,7 @@ Uso:
     python scripts/check_platform_policy.py --notify
 
 Codigos de saida:
-    0   tudo verificado, nenhuma mudanca
+    0   nenhuma mudanca relevante
     1   falha de rede em pelo menos uma pagina
     2   erro de configuracao
     10  mudanca de politica detectada
@@ -46,30 +41,39 @@ ARQ_RELATORIO = LEDGER / "platform_policy_report.md"
 TIMEOUT_PADRAO = 25
 TENTATIVAS_PADRAO = 3
 MINIMO_CARACTERES_UTEIS = 500
+LIMIAR_PADRAO = 0.97
+TAMANHO_SHINGLE = 5
+AMOSTRA_SHINGLE = 2
 
 USER_AGENT = (
-    "VAIP-PolicyWatcher/1.0 "
+    "VAIP-PolicyWatcher/1.1 "
     "(+https://github.com/patrikesiqueira93/Agente-Orquestrador-VAIP)"
 )
 
-# Confirme cada URL no navegador antes de confiar no monitor.
-# Se uma pagina mudar de endereco, o status vira ERRO_DE_REDE e o script avisa.
-PAGINAS: dict[str, str] = {
-    "youtube_monetizacao": (
-        "https://support.google.com/youtube/answer/1311392?hl=en"
-    ),
-    "youtube_diretrizes": "https://www.youtube.com/t/community_guidelines",
-    "tiktok_integridade": (
-        "https://www.tiktok.com/safety/en/policies-and-engagement/"
-        "integrity-authenticity"
-    ),
-    "tiktok_diretrizes": "https://www.tiktok.com/community-guidelines",
-    "tiktok_ia": (
-        "https://support.tiktok.com/en/using-tiktok/creating-videos/"
-        "ai-generated-content"
-    ),
+# limiar: similaridade minima para considerar a pagina igual.
+# Abaixo disso o status vira MUDOU e o gate exige revisao humana.
+PAGINAS: dict[str, dict] = {
+    "youtube_monetizacao": {
+        "url": "https://support.google.com/youtube/answer/1311392?hl=en",
+        "limiar": 0.97,
+    },
+    "youtube_diretrizes": {
+        "url": "https://www.youtube.com/t/community_guidelines",
+        "limiar": 0.97,
+    },
+    "tiktok_integridade": {
+        "url": (
+            "https://www.tiktok.com/safety/en/policies-and-engagement/"
+            "integrity-authenticity"
+        ),
+        "limiar": 0.97,
+    },
+    "tiktok_diretrizes": {
+        "url": "https://www.tiktok.com/community-guidelines",
+        "limiar": 0.97,
+    },
     # Kwai nao entrou: confirme a URL oficial da politica e descomente.
-    # "kwai_diretrizes": "https://...",
+    # "kwai_diretrizes": {"url": "https://...", "limiar": 0.97},
 }
 
 _RE_COMENTARIO = re.compile(r"<!--.*?-->", re.DOTALL)
@@ -80,6 +84,16 @@ _RE_SCRIPT = re.compile(
 _RE_TAG = re.compile(r"<[^>]+>")
 _RE_ESPACO = re.compile(r"\s+")
 
+_RE_UUID = re.compile(
+    r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b"
+)
+_RE_HEX = re.compile(r"\b[0-9a-f]{16,}\b")
+_RE_URL = re.compile(r"https?://\S+")
+_RE_ISO = re.compile(r"\d{4}-\d{2}-\d{2}(?:[t ]\d{2}:\d{2}(?::\d{2})?)?")
+_RE_DATA = re.compile(r"\b\d{1,2}/\d{1,2}/\d{2,4}\b")
+_RE_NUM_LONGO = re.compile(r"\b\d{7,}\b")
+_RE_SO_PONTUACAO = re.compile(r"[^\w\s]+")
+
 
 def normalizar(bruto: str) -> str:
     """Reduz o HTML a texto comparavel, removendo ruido de markup."""
@@ -89,6 +103,50 @@ def normalizar(bruto: str) -> str:
     texto = html.unescape(texto)
     texto = _RE_ESPACO.sub(" ", texto).strip().lower()
     return texto
+
+
+def limpar_volatil(texto: str) -> str:
+    """Remove trechos que mudam a cada acesso e nao sao politica."""
+    texto = _RE_UUID.sub(" ", texto)
+    texto = _RE_HEX.sub(" ", texto)
+    texto = _RE_URL.sub(" ", texto)
+    texto = _RE_ISO.sub(" ", texto)
+    texto = _RE_DATA.sub(" ", texto)
+    texto = _RE_NUM_LONGO.sub(" ", texto)
+    texto = _RE_SO_PONTUACAO.sub(" ", texto)
+    texto = _RE_ESPACO.sub(" ", texto).strip()
+    return texto
+
+
+def gerar_shingles(texto: str) -> list[str]:
+    """Fingerprint amostral do texto, resistente a ruido pontual."""
+    palavras = texto.split()
+    if not palavras:
+        return []
+    if len(palavras) < TAMANHO_SHINGLE:
+        base = " ".join(palavras)
+        resumo = hashlib.blake2b(base.encode("utf-8"), digest_size=8).hexdigest()
+        return [resumo]
+
+    amostra: list[str] = []
+    limite = len(palavras) - TAMANHO_SHINGLE + 1
+    for indice in range(limite):
+        pedaco = " ".join(palavras[indice : indice + TAMANHO_SHINGLE])
+        resumo = hashlib.blake2b(pedaco.encode("utf-8"), digest_size=8).hexdigest()
+        if int(resumo[0], 16) < AMOSTRA_SHINGLE:
+            amostra.append(resumo)
+    return sorted(amostra)
+
+
+def similaridade(antigos: list[str], novos: list[str]) -> float:
+    """Indice de Jaccard entre dois conjuntos de shingles."""
+    conjunto_a = set(antigos)
+    conjunto_b = set(novos)
+    if not conjunto_a or not conjunto_b:
+        return 0.0
+    intersecao = len(conjunto_a & conjunto_b)
+    uniao = len(conjunto_a | conjunto_b)
+    return intersecao / uniao if uniao else 0.0
 
 
 def baixar(url: str, timeout: int, tentativas: int) -> tuple[str | None, str | None]:
@@ -141,7 +199,7 @@ def gravar_json(caminho: Path, dados: dict) -> None:
 
 
 def verificar(
-    paginas: dict[str, str],
+    paginas: dict[str, dict],
     estado: dict,
     timeout: int,
     tentativas: int,
@@ -149,7 +207,9 @@ def verificar(
     agora = datetime.now(timezone.utc).isoformat(timespec="seconds")
     resultados: list[dict] = []
 
-    for chave, url in paginas.items():
+    for chave, configuracao in paginas.items():
+        url = configuracao["url"]
+        limiar = float(configuracao.get("limiar", LIMIAR_PADRAO))
         anterior = estado.get(chave, {})
         conteudo, erro = baixar(url, timeout, tentativas)
 
@@ -160,7 +220,9 @@ def verificar(
                     "url": url,
                     "status": "ERRO_DE_REDE",
                     "erro": erro,
-                    "hash": anterior.get("hash"),
+                    "similaridade": None,
+                    "shingles": [],
+                    "limiar": limiar,
                     "caracteres": anterior.get("caracteres"),
                     "verificado_em": agora,
                     "primeira_leitura": anterior.get("primeira_leitura"),
@@ -168,7 +230,8 @@ def verificar(
             )
             continue
 
-        texto = normalizar(conteudo)
+        texto = limpar_volatil(normalizar(conteudo))
+
         if len(texto) < MINIMO_CARACTERES_UTEIS:
             resultados.append(
                 {
@@ -179,7 +242,9 @@ def verificar(
                         f"conteudo suspeito: {len(texto)} caracteres uteis "
                         f"(minimo {MINIMO_CARACTERES_UTEIS})"
                     ),
-                    "hash": anterior.get("hash"),
+                    "similaridade": None,
+                    "shingles": [],
+                    "limiar": limiar,
                     "caracteres": len(texto),
                     "verificado_em": agora,
                     "primeira_leitura": anterior.get("primeira_leitura"),
@@ -187,14 +252,15 @@ def verificar(
             )
             continue
 
-        resumo = hashlib.sha256(texto.encode("utf-8")).hexdigest()
+        novos_shingles = gerar_shingles(texto)
+        antigos_shingles = anterior.get("shingles") or []
 
-        if not anterior.get("hash"):
+        if not antigos_shingles or not novos_shingles:
             status = "NOVA"
-        elif anterior["hash"] != resumo:
-            status = "MUDOU"
+            sim = None
         else:
-            status = "IGUAL"
+            sim = similaridade(antigos_shingles, novos_shingles)
+            status = "IGUAL" if sim >= limiar else "MUDOU"
 
         resultados.append(
             {
@@ -202,8 +268,9 @@ def verificar(
                 "url": url,
                 "status": status,
                 "erro": None,
-                "hash": resumo,
-                "hash_anterior": anterior.get("hash"),
+                "similaridade": round(sim, 4) if sim is not None else None,
+                "shingles": novos_shingles,
+                "limiar": limiar,
                 "caracteres": len(texto),
                 "verificado_em": agora,
                 "primeira_leitura": anterior.get("primeira_leitura") or agora,
@@ -220,21 +287,25 @@ def montar_relatorio(resultados: list[dict]) -> str:
         "",
         f"Executado em {agora}.",
         "",
-        "| Politica | Status | Caracteres | URL |",
-        "|---|---|---|---|",
+        "| Politica | Status | Similaridade | Caracteres | URL |",
+        "|---|---|---|---|---|",
     ]
     for item in resultados:
+        if item.get("similaridade") is None:
+            sim = "-"
+        else:
+            sim = f"{item['similaridade']:.1%}"
         caracteres = item.get("caracteres") or "-"
         linhas.append(
-            f"| {item['chave']} | {item['status']} | {caracteres} | {item['url']} |"
+            f"| {item['chave']} | {item['status']} | {sim} | {caracteres} | {item['url']} |"
         )
     linhas += [
         "",
         "Status possiveis:",
         "",
-        "- IGUAL: sem mudanca desde a ultima leitura.",
+        "- IGUAL: similaridade acima do limiar, sem mudanca relevante.",
         "- NOVA: primeira leitura, criou a linha de base.",
-        "- MUDOU: revisar o gate de conformidade manualmente antes de publicar.",
+        "- MUDOU: similaridade abaixo do limiar, revisar o gate manualmente.",
         "- ERRO_DE_REDE: a pagina nao respondeu ou mudou de endereco.",
         "",
         "Mudanca de status exige revisao humana antes da proxima publicacao.",
@@ -246,7 +317,11 @@ def montar_relatorio(resultados: list[dict]) -> str:
 def notificar_discord(resultados: list[dict], webhook: str) -> None:
     linhas = ["**VAIP - Monitor de Politicas**"]
     for item in resultados:
-        linhas.append(f"- {item['status']} | {item['chave']}")
+        if item.get("similaridade") is None:
+            detalhe_sim = ""
+        else:
+            detalhe_sim = f" ({item['similaridade']:.1%})"
+        linhas.append(f"- {item['status']} | {item['chave']}{detalhe_sim}")
         if item.get("erro"):
             linhas.append(f"  motivo: {item['erro']}")
     corpo = json.dumps({"content": "\n".join(linhas)[:1900]}).encode("utf-8")
@@ -294,21 +369,43 @@ def main() -> int:
     houve_erro = any(item["status"] == "ERRO_DE_REDE" for item in resultados)
 
     for item in resultados:
-        detalhe = item.get("erro") or ""
-        print(f"[{item['status']:>12}] {item['chave']} {detalhe}".rstrip())
+        if item.get("similaridade") is None:
+            detalhe = item.get("erro") or ""
+            print(f"[{item['status']:>12}] {item['chave']} {detalhe}".rstrip())
+        else:
+            print(
+                f"[{item['status']:>12}] {item['chave']} "
+                f"similaridade {item['similaridade']:.1%} "
+                f"(limiar {item['limiar']:.0%})"
+            )
 
     if not argumentos.dry_run:
         novo_estado = dict(estado)
         for item in resultados:
             if item["status"] == "ERRO_DE_REDE":
                 continue
-            novo_estado[item["chave"]] = {
-                "url": item["url"],
-                "hash": item["hash"],
-                "caracteres": item["caracteres"],
-                "primeira_leitura": item["primeira_leitura"],
-                "ultima_verificacao": item["verificado_em"],
-            }
+            chave = item["chave"]
+            anterior = estado.get(chave, {})
+            if item["status"] in ("NOVA", "MUDOU"):
+                novo_estado[chave] = {
+                    "url": item["url"],
+                    "shingles": item["shingles"],
+                    "caracteres": item["caracteres"],
+                    "limiar": item["limiar"],
+                    "primeira_leitura": (
+                        anterior.get("primeira_leitura") or item["verificado_em"]
+                    ),
+                    "ultima_verificacao": item["verificado_em"],
+                    "ultimo_status": item["status"],
+                }
+            else:
+                registro = dict(anterior)
+                registro["url"] = item["url"]
+                registro["caracteres"] = item["caracteres"]
+                registro["limiar"] = item["limiar"]
+                registro["ultima_verificacao"] = item["verificado_em"]
+                registro["ultimo_status"] = item["status"]
+                novo_estado[chave] = registro
         gravar_json(ARQ_ESTADO, novo_estado)
         ARQ_RELATORIO.parent.mkdir(parents=True, exist_ok=True)
         ARQ_RELATORIO.write_text(

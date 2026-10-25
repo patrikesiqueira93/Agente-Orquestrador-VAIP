@@ -1,10 +1,17 @@
 # Segurança: Segredos e Credenciais (NUNCA comitar)
 .env
+.env.*
+!.env.example
 .env.local
 *.key
 *.pem
+*.p12
+*.pfx
+*.jks
 *.token
+credentials/
 credentials.json
+secrets.json
 token.json
 session.json
 
@@ -26,4 +33,6 @@ data/raw_media/
 
 # Logs e Dados Temporários
 *.log
+*.tmp
+*.bak
 data/temp/
