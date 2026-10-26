@@ -77,6 +77,10 @@ jobs:
       - name: Pipeline diario
         run: python scripts/daily_runner.py
 
+      - name: Varredura SecOps antes do commit
+        id: secops
+        run: python scripts/secops_guard.py
+
       - name: Commitar resultados
         run: |
           git config user.name "vaip-bot"
@@ -110,3 +114,4 @@ jobs:
           echo "### Resultado" >> "$GITHUB_STEP_SUMMARY"
           echo "- Gitleaks: ${{ steps.gitleaks.outcome }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Politicas: ${{ steps.policy.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- SecOps: ${{ steps.secops.outcome }}" >> "$GITHUB_STEP_SUMMARY"
