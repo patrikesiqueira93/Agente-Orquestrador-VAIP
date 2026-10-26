@@ -9,19 +9,25 @@ import json
 import urllib.request
 from datetime import datetime
 
+
 def load_env(env_path=None):
     """Carrega as variáveis do arquivo .env de forma segura."""
     if env_path is None:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         env_path = os.path.join(base_dir, ".env")
-        
+
     if os.path.exists(env_path):
-        with open(env_path, "r", encoding="utf-8") as f:
+        # utf-8-sig descarta o BOM que o Windows costuma gravar no inicio do arquivo
+        with open(env_path, "r", encoding="utf-8-sig") as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith("#") and "=" in line:
                     key, val = line.split("=", 1)
-                    os.environ[key.strip()] = val.strip().strip('"').strip("'")
+                    key = key.strip().lstrip("\ufeff")
+                    val = val.strip().strip('"').strip("'")
+                    if val:
+                        os.environ[key] = val
+
 
 def send_discord_report(links, candidate_name="Patrik Ernandes Siqueira", file_path=None, secops_status=None) -> bool:
     """Envia o relatório diário formatado em Embed e com o arquivo .md anexado para o Discord."""
@@ -32,9 +38,9 @@ def send_discord_report(links, candidate_name="Patrik Ernandes Siqueira", file_p
         return False
 
     today_str = datetime.now().strftime("%d/%m/%Y")
-    
+
     fields = []
-    
+
     if secops_status:
         fields.append({
             "name": "🛡️ Postura de Segurança & Defesa do Host (PC & Agentes)",
@@ -49,7 +55,7 @@ def send_discord_report(links, candidate_name="Patrik Ernandes Siqueira", file_p
             "value": f"**Cargo:** {item['termo']}\n⏱️ **Publicação:** `{data_info}`\n🔗 [Acessar Vagas Filtradas]({item['url']})",
             "inline": False
         })
-        
+
     description_text = (
         f"Salve, **{candidate_name}**! Seguem as vagas filtradas no **Alto Tietê "
         f"(Mogi das Cruzes, Suzano, Guararema, Salesópolis), Guarulhos e Remoto** "
@@ -61,21 +67,21 @@ def send_discord_report(links, candidate_name="Patrik Ernandes Siqueira", file_p
     embed = {
         "title": f"🎯 Relatório Diário de Vagas em Dados - {today_str}",
         "description": description_text,
-        "color": 3447003, # Azul tecnológico elegante
+        "color": 3447003,  # Azul tecnológico elegante
         "fields": fields,
         "footer": {
             "text": "VAIP Master Orchestrator • Zero-Leak & Nuvem Autônoma",
             "icon_url": "https://cdn-icons-png.flaticon.com/512/4712/4712038.png"
         }
     }
-    
+
     payload = {
         "username": "VAIP - Job Hunter",
         "avatar_url": "https://cdn-icons-png.flaticon.com/512/4712/4712038.png",
-        "thread_name": f"🎯 Vagas de Dados - {today_str}", # Suporta canal de fórum
+        "thread_name": f"🎯 Vagas de Dados - {today_str}",  # Suporta canal de fórum
         "embeds": [embed]
     }
-    
+
     try:
         if file_path and os.path.exists(file_path):
             filename = os.path.basename(file_path)
@@ -84,23 +90,23 @@ def send_discord_report(links, candidate_name="Patrik Ernandes Siqueira", file_p
 
             boundary = "----VAIPBoundary" + os.urandom(8).hex()
             body = bytearray()
-            
+
             # 1. payload_json
             body.extend(f"--{boundary}\r\n".encode("utf-8"))
             body.extend(b'Content-Disposition: form-data; name="payload_json"\r\n')
             body.extend(b'Content-Type: application/json\r\n\r\n')
             body.extend(json.dumps(payload).encode("utf-8"))
             body.extend(b"\r\n")
-            
+
             # 2. Arquivo anexo
             body.extend(f"--{boundary}\r\n".encode("utf-8"))
             body.extend(f'Content-Disposition: form-data; name="files[0]"; filename="{filename}"\r\n'.encode("utf-8"))
             body.extend(b'Content-Type: text/markdown; charset=utf-8\r\n\r\n')
             body.extend(file_bytes)
             body.extend(b"\r\n")
-            
+
             body.extend(f"--{boundary}--\r\n".encode("utf-8"))
-            
+
             req = urllib.request.Request(
                 webhook_url,
                 data=bytes(body),
@@ -123,6 +129,7 @@ def send_discord_report(links, candidate_name="Patrik Ernandes Siqueira", file_p
     except Exception as e:
         print(f"[-] Erro ao disparar para Discord: {e}")
         return False
+
 
 def send_discord_message(content: str) -> bool:
     """Envia uma mensagem de texto simples para o Discord."""
@@ -151,8 +158,10 @@ def send_discord_message(content: str) -> bool:
         print(f"[-] Erro ao enviar mensagem para Discord: {e}")
         return False
 
+
 def send_telegram_message(content: str) -> bool:
     """Envia mensagem para o Telegram se configurado."""
+    load_env()
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
     if not token or not chat_id:
@@ -167,6 +176,7 @@ def send_telegram_message(content: str) -> bool:
     except Exception as e:
         print(f"[-] Erro Telegram: {e}")
         return False
+
 
 if __name__ == "__main__":
     from search_jobs import generate_search_links
