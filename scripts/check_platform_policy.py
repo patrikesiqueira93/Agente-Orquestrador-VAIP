@@ -83,7 +83,6 @@ _RE_SCRIPT = re.compile(
 )
 _RE_TAG = re.compile(r"<[^>]+>")
 _RE_ESPACO = re.compile(r"\s+")
-
 _RE_UUID = re.compile(
     r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b"
 )
@@ -127,7 +126,6 @@ def gerar_shingles(texto: str) -> list[str]:
         base = " ".join(palavras)
         resumo = hashlib.blake2b(base.encode("utf-8"), digest_size=8).hexdigest()
         return [resumo]
-
     amostra: list[str] = []
     limite = len(palavras) - TAMANHO_SHINGLE + 1
     for indice in range(limite):
@@ -152,7 +150,6 @@ def similaridade(antigos: list[str], novos: list[str]) -> float:
 def baixar(url: str, timeout: int, tentativas: int) -> tuple[str | None, str | None]:
     """Baixa a pagina. Devolve (conteudo, erro). Nunca esconde a excecao."""
     ultimo_erro = "erro desconhecido"
-
     for tentativa in range(1, tentativas + 1):
         requisicao = urllib.request.Request(
             url,
@@ -172,7 +169,6 @@ def baixar(url: str, timeout: int, tentativas: int) -> tuple[str | None, str | N
             ultimo_erro = f"{type(erro).__name__} em {url}: {erro}"
         if tentativa < tentativas:
             time.sleep(2 * tentativa)
-
     return None, ultimo_erro
 
 
@@ -206,13 +202,12 @@ def verificar(
 ) -> list[dict]:
     agora = datetime.now(timezone.utc).isoformat(timespec="seconds")
     resultados: list[dict] = []
-
     for chave, configuracao in paginas.items():
         url = configuracao["url"]
         limiar = float(configuracao.get("limiar", LIMIAR_PADRAO))
         anterior = estado.get(chave, {})
-        conteudo, erro = baixar(url, timeout, tentativas)
 
+        conteudo, erro = baixar(url, timeout, tentativas)
         if erro is not None or conteudo is None:
             resultados.append(
                 {
@@ -231,7 +226,6 @@ def verificar(
             continue
 
         texto = limpar_volatil(normalizar(conteudo))
-
         if len(texto) < MINIMO_CARACTERES_UTEIS:
             resultados.append(
                 {
@@ -254,7 +248,6 @@ def verificar(
 
         novos_shingles = gerar_shingles(texto)
         antigos_shingles = anterior.get("shingles") or []
-
         if not antigos_shingles or not novos_shingles:
             status = "NOVA"
             sim = None
@@ -276,7 +269,6 @@ def verificar(
                 "primeira_leitura": anterior.get("primeira_leitura") or agora,
             }
         )
-
     return resultados
 
 
@@ -324,6 +316,7 @@ def notificar_discord(resultados: list[dict], webhook: str) -> None:
         linhas.append(f"- {item['status']} | {item['chave']}{detalhe_sim}")
         if item.get("erro"):
             linhas.append(f"  motivo: {item['erro']}")
+
     corpo = json.dumps({"content": "\n".join(linhas)[:1900]}).encode("utf-8")
     requisicao = urllib.request.Request(
         webhook,
@@ -334,6 +327,12 @@ def notificar_discord(resultados: list[dict], webhook: str) -> None:
     try:
         with urllib.request.urlopen(requisicao, timeout=15) as resposta:
             print(f"[+] Discord respondeu {resposta.status}", file=sys.stderr)
+    except urllib.error.HTTPError as erro:
+        detalhe = erro.read().decode("utf-8", errors="replace")
+        print(
+            f"[!] Falha ao notificar o Discord: HTTP {erro.code}: {detalhe}",
+            file=sys.stderr,
+        )
     except (urllib.error.URLError, TimeoutError, OSError) as erro:
         print(f"[!] Falha ao notificar o Discord: {erro}", file=sys.stderr)
 
