@@ -1,0 +1,61 @@
+name: VAIP Seguranca e Politicas
+
+on:
+  schedule:
+    # 20:00 em America/Sao_Paulo (UTC-3) = 23:00 UTC
+    - cron: "0 23 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vaip-daily
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.13"
+  TZ: America/Sao_Paulo
+
+jobs:
+  seguranca-politicas:
+    name: Seguranca e monitor de politicas
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout com historico completo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Varredura de segredos no historico
+        id: gitleaks
+        continue-on-error: true
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Monitor de politicas das plataformas
+        id: policy
+        continue-on-error: true
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_POLITICAS_WEBHOOK_URL }}
+        run: python scripts/check_platform_policy.py --notify
+
+      - name: Varredura SecOps do projeto
+        id: secops
+        run: python scripts/secops_guard.py
+
+      - name: Resumo da execucao
+        if: always()
+        run: |
+          echo "### Resultado" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Gitleaks: ${{ steps.gitleaks.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Politicas: ${{ steps.policy.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- SecOps: ${{ steps.secops.outcome }}" >> "$GITHUB_STEP_SUMMARY"
