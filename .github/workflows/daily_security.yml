@@ -52,6 +52,34 @@ jobs:
         id: secops
         run: python scripts/secops_guard.py
 
+      - name: Commitar estado do ledger
+        if: always()
+        run: |
+          git config user.name "vaip-bot"
+          git config user.email "vaip-bot@users.noreply.github.com"
+
+          if [ ! -d ledger ]; then
+            echo "Pasta ledger ausente. Nada a commitar."
+            exit 0
+          fi
+
+          git add ledger
+
+          if git diff --staged --quiet; then
+            echo "Sem alteracoes no ledger."
+            exit 0
+          fi
+
+          git commit -m "chore: estado de seguranca e politicas $(date -u +%Y-%m-%d)"
+
+          if ! git pull --rebase --autostash origin "${GITHUB_REF_NAME}"; then
+            echo "::error::Rebase falhou no ledger."
+            git rebase --abort || true
+            exit 1
+          fi
+
+          git push
+
       - name: Resumo da execucao
         if: always()
         run: |
