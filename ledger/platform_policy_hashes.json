@@ -1,6 +1,6 @@
 {
   "tiktok_diretrizes": {
-    "caracteres": 6929,
+    "caracteres": 6896,
     "limiar": 0.97,
     "primeira_leitura": "2026-10-25T16:20:36+00:00",
     "shingles": [
@@ -130,7 +130,7 @@
       "1fbfda56ae57ff76",
       "1fddefbd63f71193"
     ],
-    "ultima_verificacao": "2026-10-29T19:44:12+00:00",
+    "ultima_verificacao": "2026-10-29T20:20:41+00:00",
     "ultimo_status": "IGUAL",
     "url": "https://www.tiktok.com/community-guidelines"
   },
@@ -257,7 +257,7 @@
       "1f5367fb9a707515",
       "1faf257e6f19d7e1"
     ],
-    "ultima_verificacao": "2026-10-29T19:44:12+00:00",
+    "ultima_verificacao": "2026-10-29T20:20:41+00:00",
     "ultimo_status": "IGUAL",
     "url": "https://www.tiktok.com/safety/en/policies-and-engagement/integrity-authenticity"
   },
@@ -369,7 +369,7 @@
       "1f365e18f1f36fa5",
       "1ffe1c2bb775887f"
     ],
-    "ultima_verificacao": "2026-10-29T19:44:12+00:00",
+    "ultima_verificacao": "2026-10-29T20:20:41+00:00",
     "ultimo_status": "IGUAL",
     "url": "https://www.youtube.com/t/community_guidelines"
   },
@@ -966,7 +966,7 @@
       "1fca65eb13bcaa6b",
       "1fd62976246c4c4e"
     ],
-    "ultima_verificacao": "2026-10-29T19:44:12+00:00",
+    "ultima_verificacao": "2026-10-29T20:20:41+00:00",
     "ultimo_status": "IGUAL",
     "url": "https://support.google.com/youtube/answer/1311392?hl=en"
   }
