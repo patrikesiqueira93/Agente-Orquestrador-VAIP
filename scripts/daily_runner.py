@@ -34,8 +34,8 @@ def run_daily_hunt():
     # 2. Obter links formatados
     links = generate_search_links()
     
-    # 3. Disparar para o Discord (com o arquivo .md anexado e badge de segurança)
-    success = send_discord_report(links, file_path=report_file, secops_status=secops_result)
+    # 3. Disparar para o Discord de vagas (com o arquivo .md anexado, sem bloco de segurança)
+    success = send_discord_report(links, file_path=report_file)
     
     # 4. Atualizar o Ledger de Estado
     base_dir = os.path.dirname(current_dir)
