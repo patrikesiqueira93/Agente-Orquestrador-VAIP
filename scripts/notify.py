@@ -29,12 +29,12 @@ def load_env(env_path=None):
                         os.environ[key] = val
 
 
-def send_discord_report(links, candidate_name="Patrik Ernandes Siqueira", file_path=None, secops_status=None) -> bool:
+def send_discord_report(links, candidate_name="candidato", file_path=None, secops_status=None, webhook_env="DISCORD_WEBHOOK_URL") -> bool:
     """Envia o relatório diário formatado em Embed e com o arquivo .md anexado para o Discord."""
     load_env()
-    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
+    webhook_url = os.environ.get(webhook_env)
     if not webhook_url:
-        print("[!] DISCORD_WEBHOOK_URL não encontrada no .env ou nas Secrets.")
+        print(f"[!] {webhook_env} não encontrada no .env ou nas Secrets.")
         return False
 
     today_str = datetime.now().strftime("%d/%m/%Y")
