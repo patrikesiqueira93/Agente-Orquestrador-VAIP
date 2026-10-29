@@ -29,7 +29,7 @@ KEYWORDS = [
 ]
 
 def generate_search_links():
-    """Gera links diretos e parametrizados nos principais portais para o perfil do Patrik."""
+    """Gera links diretos e parametrizados nos principais portais para o perfil de Analista de Dados & BI."""
     links = []
     
     # 1. Catho (Filtro últimas 24h a 7 dias)
@@ -100,7 +100,7 @@ def export_daily_report(output_dir="data"):
     
     content = f"""# 🎯 Relatório Diário de Vagas de Dados - VAIP Hunter
 **Data**: {today_str}
-**Candidato**: Patrik Ernandes Siqueira (Analista de Dados & BI)
+**Perfil**: Analista de Dados & BI
 **Região Alvo**: Mogi das Cruzes, Suzano, Guararema, Salesópolis até Guarulhos e Remoto.
 
 ---
