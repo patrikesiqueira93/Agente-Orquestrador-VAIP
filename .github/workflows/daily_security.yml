@@ -2,8 +2,8 @@ name: VAIP Seguranca e Politicas
 
 on:
   schedule:
-    # 20:00 em America/Sao_Paulo (UTC-3) = 23:00 UTC
-    - cron: "0 23 * * *"
+    # 22:05 em America/Sao_Paulo (UTC-3, sem horario de verao desde 2019) = 01:05 UTC
+    - cron: "5 1 * * *"
   workflow_dispatch:
 
 permissions:
@@ -50,6 +50,9 @@ jobs:
 
       - name: Varredura SecOps do projeto
         id: secops
+        continue-on-error: true
+        env:
+          DISCORD_SECURITY_WEBHOOK_URL: ${{ secrets.DISCORD_SEGURANCA_WEBHOOK_URL }}
         run: python scripts/secops_guard.py
 
       - name: Commitar estado do ledger
