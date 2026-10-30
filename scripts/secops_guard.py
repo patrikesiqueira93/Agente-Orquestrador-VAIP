@@ -12,6 +12,9 @@ Códigos de saída:
     0  PASS     auditoria limpa
     1  WARN     achados de segurança
     2  PARTIAL  varredura incompleta (arquivo ilegível ou não inspecionado)
+
+Envio: o relatório vai ao Discord em TODA execução, com qualquer status,
+pelo webhook definido em DISCORD_SECURITY_WEBHOOK_URL (.env local ou secret).
 """
 
 import argparse
@@ -19,6 +22,8 @@ import json
 import os
 import re
 import sys
+import urllib.error
+import urllib.request
 from datetime import datetime
 
 # Expressões regulares para detecção de segredos em código versionado
@@ -50,6 +55,9 @@ GITIGNORE_REQUIRED = {
 
 MAX_FILE_BYTES = 2 * 1024 * 1024
 
+RAIZ_PROJETO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DISCORD_SECURITY_ENV = "DISCORD_SECURITY_WEBHOOK_URL"
+
 
 def _ler_arquivo(caminho: str) -> str:
     """Lê o arquivo como texto. Deixa a exceção subir para ser registrada."""
@@ -68,10 +76,33 @@ def _gitignore_cobre(linhas: list, padrao: str) -> bool:
     return False
 
 
+def carregar_env_local(base_dir: str) -> None:
+    """Lê o .env da raiz e preenche variáveis ainda não definidas no ambiente.
+
+    Não imprime valores. Aceita BOM (utf-8-sig), comentários e linhas vazias.
+    """
+    caminho = os.path.join(base_dir, ".env")
+    if not os.path.exists(caminho):
+        return
+    try:
+        with open(caminho, "r", encoding="utf-8-sig", errors="ignore") as arquivo:
+            for linha in arquivo:
+                linha = linha.strip()
+                if not linha or linha.startswith("#") or "=" not in linha:
+                    continue
+                chave, valor = linha.split("=", 1)
+                chave = chave.strip()
+                valor = valor.strip().strip('"').strip("'")
+                if chave and valor and chave not in os.environ:
+                    os.environ[chave] = valor
+    except OSError as erro:
+        print(f"[!] Não foi possível ler o .env: {type(erro).__name__}", file=sys.stderr)
+
+
 def run_security_audit(base_dir=None) -> dict:
     """Executa auditoria completa de segurança e conformidade do VAIP."""
     if base_dir is None:
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        base_dir = RAIZ_PROJETO
 
     audit_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     findings = []
@@ -218,6 +249,48 @@ def run_security_audit(base_dir=None) -> dict:
     return resultado
 
 
+def enviar_relatorio_discord(res: dict) -> None:
+    """Envia o resumo da auditoria ao canal de segurança, em qualquer status."""
+    webhook = os.environ.get(DISCORD_SECURITY_ENV, "").strip()
+    if not webhook:
+        print(
+            f"[!] {DISCORD_SECURITY_ENV} ausente: relatório não enviado ao Discord.",
+            file=sys.stderr,
+        )
+        return
+
+    linhas = [
+        "**VAIP - Auditoria SecOps**",
+        f"Status: {res['status']} | Zero-Leak: {res['zero_leak_status']}",
+        f"Arquivos verificados: {res['scanned_files']} | "
+        f"Ameaças: {res['threats_detected']} | "
+        f"Erros de varredura: {len(res['scan_errors'])}",
+    ]
+    for achado in res["findings"][:10]:
+        local = achado["file"]
+        if achado.get("line"):
+            local += f":{achado['line']}"
+        linhas.append(f"- {achado['severity']}: {achado['type']} em {local}")
+
+    corpo = json.dumps({"content": "\n".join(linhas)[:1900]}).encode("utf-8")
+    requisicao = urllib.request.Request(
+        webhook,
+        data=corpo,
+        headers={
+            "Content-Type": "application/json",
+            "User-Agent": "VAIP-SecOps-Guard/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(requisicao, timeout=15) as resposta:
+            print(f"[+] Discord (segurança) respondeu {resposta.status}")
+    except urllib.error.HTTPError as erro:
+        print(f"[!] Falha ao enviar ao Discord: HTTP {erro.code}", file=sys.stderr)
+    except (urllib.error.URLError, TimeoutError, OSError) as erro:
+        print(f"[!] Falha ao enviar ao Discord: {erro}", file=sys.stderr)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Auditoria SecOps do VAIP.")
     parser.add_argument(
@@ -226,6 +299,8 @@ def main() -> int:
         help="raiz do projeto (padrão: pasta pai de scripts/)",
     )
     argumentos = parser.parse_args()
+
+    carregar_env_local(argumentos.base_dir or RAIZ_PROJETO)
 
     res = run_security_audit(argumentos.base_dir)
 
@@ -255,6 +330,8 @@ def main() -> int:
             print(f" [!] {achado['severity']}: {achado['type']} em {local}")
     else:
         print("[+] Nenhuma vulnerabilidade ou segredo exposto detectado.")
+
+    enviar_relatorio_discord(res)
 
     if res["status"] == "PARTIAL":
         return 2
